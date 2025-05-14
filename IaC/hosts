@@ -1,0 +1,7 @@
+[master]
+controller1 ansible_host=192.168.122.99 ansible_user=test
+
+[workers]
+worker1 ansible_host=192.168.122.95 ansible_user=test
+worker2 ansible_host=192.168.122.44 ansible_user=test
+worker3 ansible_host=192.168.122.16 ansible_user=test

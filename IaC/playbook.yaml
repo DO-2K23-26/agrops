@@ -1,0 +1,95 @@
+---
+- name: Check server status
+  hosts: all
+  tasks:
+    - name: Verify servers are up
+      ping:
+      register: ping_result
+
+    - name: Install required packages
+      apt:
+        name:
+          - curl
+        state: present
+        update_cache: yes
+      become: true
+      become_method: sudo
+
+    - name: Rename the host
+      command: hostnamectl set-hostname {{ inventory_hostname }}
+      register: rename_result
+      become: true
+      become_method: sudo
+      when: ping_result is succeeded
+
+- name: Master Node Configuration
+  hosts: master
+  tasks:
+    - name: Check if k3s is already installed
+      command: k3s --version
+      register: k3s_installed
+      ignore_errors: true
+
+    - name: Ask if k3s should be removed if already installed
+      pause:
+        prompt: "k3s est déjà installé sur le noeud Master. Voulez-vous le supprimer et réinstaller ? (o/n)"
+      register: user_response
+      when: k3s_installed is succeeded
+
+    - name: Remove k3s if user agrees
+      shell: /usr/local/bin/k3s-uninstall.sh
+      become: true
+      become_method: sudo
+      when: k3s_installed is succeeded and user_response.user_input == 'o'
+
+    - name: Install k3s on the master node
+      shell: curl -sfL https://get.k3s.io | sh -
+      become: true
+      become_method: sudo
+      when: k3s_installed is failed or (k3s_installed is succeeded and user_response.user_input == 'o')
+
+- name: Retrieve IP and master k3s token
+  hosts: master
+  tasks:
+    - name: Get the IP of the master node
+      shell: hostname -I | awk '{print$1}'
+      register: masterIP
+
+    - name: Get the master token value
+      shell: cat /var/lib/rancher/k3s/server/token
+      become: true
+      become_method: sudo
+      register: nodeToken
+
+    - name: Add to a dummy host
+      add_host:
+        name: "K3s_MASTER_DETAILS"
+        masterip: "{{ masterIP.stdout }}"
+        nodetoken: "{{ nodeToken.stdout }}"
+
+- name: Install k3s on worker nodes
+  hosts: workers
+  tasks:
+    - name: Check if k3s is already installed
+      command: k3s --version
+      register: k3s_installed
+      ignore_errors: true
+
+    - name: Ask if k3s should be removed if already installed
+      pause:
+        prompt: "k3s est déjà installé sur le noeud {{ inventory_hostname }}. Voulez-vous le supprimer et réinstaller ? (o/n)"
+      register: user_response
+      when: k3s_installed is succeeded
+
+    - name: Remove k3s if user agrees
+      shell: /usr/local/bin/k3s-agent-uninstall.sh
+      become: true
+      become_method: sudo
+      when: k3s_installed is succeeded and user_response is defined and user_response.user_input == 'o'
+
+    - name: Installing k3s agents
+      shell: curl -sfL https://get.k3s.io | K3S_URL=https://{{ hostvars['K3s_MASTER_DETAILS']['masterip'] }}:6443 K3S_TOKEN={{ hostvars['K3s_MASTER_DETAILS']['nodetoken'] }} sh -
+      become: true
+      become_method: sudo
+      when: k3s_installed is failed or (k3s_installed is succeeded and user_response is defined and user_response.user_input == 'o')
+...
