@@ -7,7 +7,7 @@ kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/downloa
 
 [Install istio](https://istio.io/latest/docs/tasks/traffic-management/ingress/gateway-api/) using minimal profile to avoid installing the ingress gateway:
 ```sh
-istioctl install --set profile=minimal -y
+istioctl install --set profile=minimal -f ./tracing.yaml --skip-confirmation 
 ```
 
 [Install kiali](https://istio.io/latest/docs/ops/integrations/kiali/):
@@ -28,4 +28,19 @@ kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.26/samp
 [Install jeager](https://istio.io/latest/docs/ops/integrations/jaeger/):
 ```sh
 kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.26/samples/addons/jaeger.yaml
+```
+
+Setup jaeger: 
+```sh
+kubectl apply -f - <<EOF
+apiVersion: telemetry.istio.io/v1
+kind: Telemetry
+metadata:
+  name: mesh-default
+  namespace: istio-system
+spec:
+  tracing:
+  - providers:
+    - name: jaeger
+EOF
 ```
