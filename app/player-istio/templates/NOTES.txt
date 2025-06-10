@@ -1,0 +1,38 @@
+{{- $fullName := .Release.Name -}}
+
+Le service {{ $fullName }} a été déployé avec succès dans le namespace {{ .Release.Namespace }}.
+
+Accès au service :
+-------------------
+Interne au cluster : {{ $fullName }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}
+
+Informations sur le joueur :
+----------------------------
+Nom du joueur : {{ .Values.playerName }}
+
+Pour tester le service en local via port-forward :
+-------------------------------------------------
+kubectl port-forward svc/{{ $fullName }} {{ .Values.service.port }}:{{ .Values.service.port }} -n {{ .Release.Namespace }}
+
+Ensuite, dans un autre terminal :
+curl http://localhost:{{ .Values.service.port }}/ping
+
+Pour tester le challenge entre joueurs :
+----------------------------------------
+curl -X POST http://localhost:{{ .Values.service.port }}/challenge \
+  -H "Content-Type: application/json" \
+  -d '{"opponentUrl": "http://autre-joueur:{{ .Values.service.port }}/ping"}'
+
+Accès via la Gateway Istio :
+---------------------------
+Si vous avez configuré DNS ou modifié votre fichier /etc/hosts :
+curl http://{{ .Values.istio.host }}/ping
+
+Vérification des ressources Istio :
+----------------------------------
+kubectl get virtualservice,destinationrule,gateway,httproute -n {{ .Release.Namespace }}
+
+Visualisation du trafic :
+------------------------
+istioctl dashboard kiali
+istioctl dashboard jaeger

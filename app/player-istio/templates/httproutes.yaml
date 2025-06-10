@@ -1,0 +1,81 @@
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: {{ .Release.Name }}-httproute
+  namespace: {{ .Release.Namespace }}
+spec:
+  parentRefs:
+  - name: {{ .Values.istio.gatewayName }}
+    namespace: {{ .Values.istio.gatewayNamespace }}
+  hostnames:
+  - "localhost"
+  - "162.38.112.168"
+  - "162.38.112.167"
+  - {{ .Release.Name }}
+  rules:
+  # Route for root path with prefix
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /{{ .Release.Name }}/
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /
+    backendRefs:
+    - name: {{ .Release.Name }}
+      port: {{ .Values.service.port }}
+    {{- if .Values.istio.enableFaultInjection }}
+    filters:
+    - type: RequestHeaderModifier
+      requestHeaderModifier:
+        add:
+        - name: x-fault-delay
+          value: "{{ .Values.istio.faultDelayMs }}"
+    {{- end }}
+  # Route for challenge endpoint
+  - matches:
+    - path:
+        type: Exact
+        value: /{{ .Release.Name }}/challenge
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplaceFullPath
+          replaceFullPath: /challenge
+    backendRefs:
+    - name: {{ .Release.Name }}
+      port: {{ .Values.service.port }}
+  # Route for ping endpoint
+  - matches:
+    - path:
+        type: Exact
+        value: /{{ .Release.Name }}/ping
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplaceFullPath
+          replaceFullPath: /ping
+    backendRefs:
+    - name: {{ .Release.Name }}
+      port: {{ .Values.service.port }}
+  {{- if .Values.istio.metricsEnabled }}
+  # Route for metrics endpoint
+  - matches:
+    - path:
+        type: Exact
+        value: /{{ .Release.Name }}/metrics
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplaceFullPath
+          replaceFullPath: /metrics
+    backendRefs:
+    - name: {{ .Release.Name }}
+      port: {{ .Values.service.port }}
+  {{- end }}

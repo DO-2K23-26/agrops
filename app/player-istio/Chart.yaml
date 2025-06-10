@@ -1,0 +1,14 @@
+apiVersion: v2
+name: player-istio
+version: 0.1.0
+description: Expose un joueur HTTP dans un mesh Istio
+type: application
+appVersion: "1.0.0"
+icon: https://istio.io/latest/img/istio-whitelogo-bluebackground-unframed.svg
+keywords:
+  - istio
+  - service-mesh
+  - player-service
+maintainers:
+  - name: Hugo
+    email: hugo@example.com

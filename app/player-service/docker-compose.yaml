@@ -1,0 +1,32 @@
+services:
+  player-a:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: player-a
+    environment:
+      - PLAYER_NAME=joueur-a
+      - PORT=8080
+    ports:
+      - "8080:8080"
+    networks:
+      - player-network
+    restart: unless-stopped
+
+  player-b:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: player-b
+    environment:
+      - PLAYER_NAME=joueur-b
+      - PORT=8080
+    ports:
+      - "8081:8080"
+    networks:
+      - player-network
+    restart: unless-stopped
+
+networks:
+  player-network:
+    driver: bridge

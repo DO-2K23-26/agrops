@@ -1,0 +1,51 @@
+# Nom du joueur qui sera déployé
+playerName: tristiano
+
+# Configuration de l'image
+image:
+  repository: hugo08/pong
+  tag: 0.0.6
+  pullPolicy: IfNotPresent
+
+# Configuration du service
+service:
+  port: 8080
+
+# Configuration d'Istio
+istio:
+  host: joueur-a.local.mesh
+  gatewayName: tournament-gateway
+  gatewayNamespace: player-demo
+  # Injection de fautes pour tester la résilience
+  enableFaultInjection: false
+  faultDelayMs: 1500
+  faultPercentage: 50
+  # Circuit Breaker pour protéger le service
+  enableCircuitBreaker: true
+  # Metrics endpoint
+  metricsEnabled: true
+  
+# Configuration TLS - Désactivée pour n'utiliser que HTTP
+tls:
+  enabled: false
+
+# Configuration des ressources
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# Configuration des sondes
+probes:
+  livenessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+  readinessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 5
+
+# Réplicas
+replicaCount: 1

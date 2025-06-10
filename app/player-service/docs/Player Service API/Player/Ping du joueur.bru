@@ -1,0 +1,16 @@
+meta {
+  name: Ping du joueur
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/ping
+  body: none
+  auth: none
+}
+
+headers {
+  ~X-Request-ID: 
+  ~X-Mesh-Trace: 
+}

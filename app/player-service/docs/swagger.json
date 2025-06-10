@@ -1,0 +1,279 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Player Service API",
+    "description": "API pour un service de joueur dans un environnement Kubernetes avec Istio",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Support",
+      "email": "support@player-service.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Local Development Server"
+    },
+    {
+      "url": "http://{playerName}:8080",
+      "description": "Kubernetes Service",
+      "variables": {
+        "playerName": {
+          "default": "player-a",
+          "description": "Nom du joueur configuré via PLAYER_NAME"
+        }
+      }
+    }
+  ],
+  "paths": {
+    "/ping": {
+      "get": {
+        "summary": "Ping du joueur",
+        "description": "Retourne le nom du joueur et sa latence simulée",
+        "operationId": "pingPlayer",
+        "tags": ["Player"],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Request-ID",
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de requête pour le traçage",
+            "required": false
+          },
+          {
+            "in": "header",
+            "name": "X-Mesh-Trace",
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de traçage pour le service mesh",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Réponse de ping réussie",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PingResponse"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "player": "joueur-a",
+                      "status": "pong",
+                      "latencyMs": 123
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur interne du serveur",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "error": {
+                    "value": {
+                      "error": "Internal Server Error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/challenge": {
+      "post": {
+        "summary": "Challenge entre joueurs",
+        "description": "Défie un autre joueur et détermine le gagnant en fonction de la latence",
+        "operationId": "challengePlayers",
+        "tags": ["Player"],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Request-ID",
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID de requête pour le traçage",
+            "required": false
+          }
+        ],
+        "requestBody": {
+          "description": "Informations sur l'adversaire",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChallengeRequest"
+              },
+              "examples": {
+                "challenge": {
+                  "value": {
+                    "opponentUrl": "http://joueur-b:8080/ping"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Résultat du challenge",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChallengeResponse"
+                },
+                "examples": {
+                  "success": {
+                    "value": {
+                      "winner": "joueur-a",
+                      "loser": "joueur-b",
+                      "durationMs": 245
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Requête invalide",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "error": {
+                    "value": {
+                      "error": "Invalid request format"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur interne du serveur",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "error": {
+                    "value": {
+                      "error": "Failed to challenge opponent"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/swagger.json": {
+      "get": {
+        "summary": "Spécification OpenAPI",
+        "description": "Retourne la spécification OpenAPI de l'API",
+        "operationId": "getOpenAPI",
+        "tags": ["Documentation"],
+        "responses": {
+          "200": {
+            "description": "Spécification OpenAPI au format JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PingResponse": {
+        "type": "object",
+        "required": ["player", "status", "latencyMs"],
+        "properties": {
+          "player": {
+            "type": "string",
+            "description": "Nom du joueur"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pong"],
+            "description": "Statut de la réponse"
+          },
+          "latencyMs": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 100,
+            "maximum": 1000,
+            "description": "Latence simulée en millisecondes"
+          }
+        }
+      },
+      "ChallengeRequest": {
+        "type": "object",
+        "required": ["opponentUrl"],
+        "properties": {
+          "opponentUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL du joueur adverse"
+          }
+        }
+      },
+      "ChallengeResponse": {
+        "type": "object",
+        "required": ["winner", "loser", "durationMs"],
+        "properties": {
+          "winner": {
+            "type": "string",
+            "description": "Nom du joueur gagnant"
+          },
+          "loser": {
+            "type": "string",
+            "description": "Nom du joueur perdant"
+          },
+          "durationMs": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Durée totale du challenge en millisecondes"
+          }
+        }
+      }
+    }
+  }
+}

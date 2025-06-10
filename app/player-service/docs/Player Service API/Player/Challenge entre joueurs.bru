@@ -1,0 +1,21 @@
+meta {
+  name: Challenge entre joueurs
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/challenge
+  body: json
+  auth: none
+}
+
+headers {
+  ~X-Request-ID: 
+}
+
+body:json {
+  {
+    "opponentUrl": ""
+  }
+}
