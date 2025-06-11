@@ -13,6 +13,7 @@ service:
 
 # Configuration d'Istio
 istio:
+  inject: true  
   host: joueur-a.local.mesh
   gatewayName: tournament-gateway
   gatewayNamespace: player-demo
@@ -49,3 +50,18 @@ probes:
 
 # Réplicas
 replicaCount: 1
+
+# Configuration du joueur "bribed" (corrompu)
+bribedPlayer:
+  enabled: false      # Activer/désactiver le joueur corrompu
+  replicaCount: 1
+  delayMs: 2000       # 2 seconds delay to ensure loss in challenges
+  image:
+    repository: hugo08/pong  # Même valeur par défaut que l'image principale
+    tag: 0.0.7-bribed               # Même valeur par défaut que l'image principale
+    pullPolicy: IfNotPresent  # Politique de récupération de l'image
+
+# Configuration de la répartition du trafic
+trafficSplit:
+  normalWeight: 30    # 30% of traffic to normal player
+  bribedWeight: 70    # 70% of traffic to bribed player

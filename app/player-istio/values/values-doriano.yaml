@@ -1,1 +1,14 @@
 playerName: doriano
+istio:
+  inject: true
+
+# Configuration du joueur "bribed" (corrompu)
+bribedPlayer:
+  enabled: false       # Activer le joueur corrompu pour Doriano
+  replicaCount: 1
+  delayMs: 2000       # 2 seconds delay to ensure loss in challenges
+
+# Configuration de la répartition du trafic
+trafficSplit:
+  normalWeight: 30    # 30% of traffic to normal player
+  bribedWeight: 70    # 70% of traffic to bribed player  

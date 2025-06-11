@@ -139,7 +139,7 @@ func ChallengeHandler(c *gin.Context) {
 	log.WithFields(logFields).Info("Challenge request received")
 
 	// Simulation de la latence locale (notre joueur)
-	localLatency := rand.Intn(901) + 100
+	localLatency := 1001
 	time.Sleep(time.Duration(localLatency) * time.Millisecond)
 
 	// Préparation de la requête pour l'adversaire

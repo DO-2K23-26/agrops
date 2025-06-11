@@ -35,7 +35,7 @@ spec:
         - name: x-fault-delay
           value: "{{ .Values.istio.faultDelayMs }}"
     {{- end }}
-  # Route for challenge endpoint
+  # Route for challenge endpoint with traffic splitting
   - matches:
     - path:
         type: Exact
@@ -47,8 +47,17 @@ spec:
           type: ReplaceFullPath
           replaceFullPath: /challenge
     backendRefs:
+    {{- if .Values.bribedPlayer.enabled }}
     - name: {{ .Release.Name }}
       port: {{ .Values.service.port }}
+      weight: {{ .Values.trafficSplit.normalWeight }}
+    - name: {{ .Release.Name }}-bribed
+      port: {{ .Values.service.port }}
+      weight: {{ .Values.trafficSplit.bribedWeight }}
+    {{- else }}
+    - name: {{ .Release.Name }}
+      port: {{ .Values.service.port }}
+    {{- end }}
   # Route for ping endpoint
   - matches:
     - path:

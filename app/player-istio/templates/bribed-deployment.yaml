@@ -1,23 +1,24 @@
+{{- if .Values.bribedPlayer.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}
+  name: {{ .Release.Name }}-bribed
   labels:
-    app: {{ .Release.Name }}
-    app.kubernetes.io/name: {{ .Release.Name }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
+    app: {{ .Release.Name }}-bribed
+    app.kubernetes.io/name: {{ .Release.Name }}-bribed
+    app.kubernetes.io/instance: {{ .Release.Name }}-bribed
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
-    app.kubernetes.io/component: player
+    app.kubernetes.io/component: player-bribed
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.bribedPlayer.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Release.Name }}
+      app: {{ .Release.Name }}-bribed
   template:
     metadata:
       labels:
-        app: {{ .Release.Name }}
+        app: {{ .Release.Name }}-bribed
         sidecar.istio.io/inject: {{ .Values.istio.inject | quote }}
       annotations:
         prometheus.io/scrape: "true"
@@ -25,14 +26,16 @@ spec:
         prometheus.io/path: "/metrics"
     spec:
       containers:
-        - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+        - name: {{ .Chart.Name }}-bribed
+          image: "{{ .Values.bribedPlayer.image.repository | default .Values.image.repository }}:{{ .Values.bribedPlayer.image.tag | default .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.bribedPlayer.image.pullPolicy | default .Values.image.pullPolicy }}
           env:
             - name: PLAYER_NAME
-              value: "{{ .Values.playerName }}"
+              value: "{{ .Values.playerName }}-bribed"
             - name: PORT
               value: "{{ .Values.service.port }}"
+            - name: ARTIFICIAL_DELAY_MS
+              value: "{{ .Values.bribedPlayer.delayMs }}"
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
@@ -51,4 +54,4 @@ spec:
             periodSeconds: {{ .Values.probes.readinessProbe.periodSeconds }}
           resources:
 {{- toYaml .Values.resources | nindent 12 }}
-
+{{- end }}
