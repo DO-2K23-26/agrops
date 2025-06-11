@@ -38,3 +38,10 @@ Verify the connection to the Kubernetes cluster:
 ```bash
 kubectl get nodes
 ```
+
+## Additional Tools
+
+To install a persistent volume provisioner and a CNI plugin, you can execute the `after.sh` script.
+```bash
+./after.sh
+```
