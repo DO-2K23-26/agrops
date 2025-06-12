@@ -1,6 +1,6 @@
 playerName: doriano
 istio:
-  inject: true
+  inject: false
 
 # Configuration du joueur "bribed" (corrompu)
 bribedPlayer:

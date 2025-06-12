@@ -1,3 +1,4 @@
+{{- if .Values.istio.httpRouteEnabled }}
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: HTTPRoute
 metadata:
@@ -11,7 +12,7 @@ spec:
   - "localhost"
   - "162.38.112.168"
   - "162.38.112.167"
-  - {{ .Release.Name }}
+  # - {{ .Release.Name }}
   rules:
   # Route for root path with prefix
   - matches:
@@ -88,3 +89,4 @@ spec:
     - name: {{ .Release.Name }}
       port: {{ .Values.service.port }}
   {{- end }}
+{{- end }}

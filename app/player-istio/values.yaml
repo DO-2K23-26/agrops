@@ -13,10 +13,12 @@ service:
 
 # Configuration d'Istio
 istio:
-  inject: true  
+  inject: false 
   host: joueur-a.local.mesh
   gatewayName: tournament-gateway
   gatewayNamespace: player-demo
+  # Activation/désactivation de la route HTTP
+  httpRouteEnabled: false
   # Injection de fautes pour tester la résilience
   enableFaultInjection: false
   faultDelayMs: 1500
